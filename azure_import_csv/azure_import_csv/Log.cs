@@ -10,6 +10,12 @@ namespace azure_import_csv
 {
     public class Log
     {
+        /// <summary>
+        /// ログの設定と追記を行います。
+        /// </summary>
+        /// <param name="fileName">CSVファイル名を格納した文字列</param>
+        /// <param name="message">ログに出力する内容を格納した文字列</param>
+        /// <returns>非同期処理</returns>
         // 処理開始ログ
         public async Task AppendLog(string fileName, string message)
         {

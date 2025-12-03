@@ -15,7 +15,10 @@ namespace azure_import_csv
         public BlobContainerClient errorContainer { get; private set; }
         public BlobContainerClient backupContainer { get; private set; }
 
-
+        /// <summary>
+        /// 設定ファイルの読み込みとAzureの接続を行います。
+        /// </summary>
+        /// <returns>接続が成功したかを示す真偽値</returns>
         public bool GetConfigSettingAndCanOpenConnect()
         {
             bool ret = false;
@@ -93,7 +96,9 @@ namespace azure_import_csv
             return ret;
         }
 
-
+        /// <summary>
+        /// 設定ファイルの読み込みとAzureの接続を行います。
+        /// </summary>
         public void Connection() 
         {
 

@@ -17,6 +17,11 @@ namespace azure_import_csv
     {
         Log log = new Log();
 
+        /// <summary>
+        /// CSVデータをDBに登録します。
+        /// </summary>
+        /// <param name="restaurantList_2">CSVの各行を格納した文字列リスト</param>
+        /// <returns>非同期処理</returns>
         public async Task regist(List<Restaurant> restaurantList_2)
         {
             // OKの場合、DBへの接続開始

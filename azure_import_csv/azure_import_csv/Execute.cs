@@ -16,6 +16,10 @@ namespace azure_import_csv
         List<Restaurant> restaurantList_1 = new List<Restaurant>();
         Log log = new Log();
 
+        /// <summary>
+        /// CSVデータ反映処理を実行します。
+        /// </summary>
+        /// <returns>非同期処理</returns>
         public async Task exe()
         {
             // Azure Storageへ接続
