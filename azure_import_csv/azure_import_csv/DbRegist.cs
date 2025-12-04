@@ -37,10 +37,13 @@ namespace azure_import_csv
 
             // ファイル名を取得（uploadコンテナから最初の1件）
             string fileName = "";
-            await foreach (BlobItem blobItem in blobconnection.uploadContainer.GetBlobsAsync())
+            if (blobconnection.uploadContainer != null)
             {
-                fileName = blobItem.Name;
-                break; // 1件だけ処理する場合
+                await foreach (BlobItem blobItem in blobconnection.uploadContainer.GetBlobsAsync())
+                {
+                    fileName = blobItem.Name;
+                    break; // 1件だけ処理する場合
+                }
             }
 
             using (var connection = new SqlConnection(connectionString))
@@ -89,21 +92,35 @@ namespace azure_import_csv
                         // 以降、何らかのエラーが発生した際はロールバックし、DBへの接続を解除する
                         transaction.Rollback();
 
+                        //BlobClient sourceBlob = blobconnection.uploadContainer.GetBlobClient(fileName);
+                        //BlobClient errorBlob = blobconnection.errorContainer.GetBlobClient(fileName);
+
+                        //if (await sourceBlob.ExistsAsync())
+                        //{
+                        //    await errorBlob.StartCopyFromUriAsync(sourceBlob.Uri);
+                        //}
+
+                        //await sourceBlob.DeleteIfExistsAsync();
 
                         // エラー時にファイルを error コンテナへ移動
-                        BlobClient sourceBlob = blobconnection.uploadContainer.GetBlobClient(fileName);
-                        BlobClient errorBlob = blobconnection.errorContainer.GetBlobClient(fileName);
-
-                        if (await sourceBlob.ExistsAsync())
+                        if (blobconnection.uploadContainer != null && blobconnection.errorContainer != null)
                         {
-                            await errorBlob.StartCopyFromUriAsync(sourceBlob.Uri);
-                        }
+                            BlobClient sourceBlob = blobconnection.uploadContainer.GetBlobClient(fileName);
 
-                        await sourceBlob.DeleteIfExistsAsync();
+                            BlobClient errorBlob = blobconnection.errorContainer.GetBlobClient(fileName);
+
+                            if (await sourceBlob.ExistsAsync())
+                            {
+                                await errorBlob.StartCopyFromUriAsync(sourceBlob.Uri);
+                            }
+
+                            await sourceBlob.DeleteIfExistsAsync();
+                        }
 
                         // また以下の内容で処理ログを記載する
                         string logExceptionFileName = $"exceptionlog_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
-                        string ExceptionConfig = System.Configuration.ConfigurationManager.AppSettings["ExceptionLog"];
+                        string ExceptionConfig = "";
+                        ExceptionConfig = System.Configuration.ConfigurationManager.AppSettings["ExceptionLog"] ?? "";
                         string logExceptionContent = string.Format(ExceptionConfig, ex.StackTrace);
                         await log.AppendLog(logExceptionFileName, logExceptionContent);
                         Console.WriteLine(logExceptionContent);

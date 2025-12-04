@@ -28,7 +28,9 @@ namespace azure_import_csv
 
             // 以下の内容で処理ログを記載する
             string logStartFileName = $"startlog_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
-            string logStartContent = System.Configuration.ConfigurationManager.AppSettings["StartLog"];
+
+            string logStartContent = "";
+            logStartContent = System.Configuration.ConfigurationManager.AppSettings["StartLog"] ?? "";
             await log.AppendLog(logStartFileName, logStartContent);
             Console.WriteLine(logStartContent);
 
@@ -36,11 +38,14 @@ namespace azure_import_csv
             List<string> restaurantFiles = new List<string>();
 
             var pattern = @"^RESTAURANT_\d{14}\.csv$";
-            await foreach (var blobItem in blobconnection.uploadContainer.GetBlobsAsync())
+            if (blobconnection.uploadContainer != null)
             {
-                if (Regex.IsMatch(blobItem.Name, pattern))
+                await foreach (var blobItem in blobconnection.uploadContainer.GetBlobsAsync())
                 {
-                    restaurantFiles.Add(blobItem.Name);
+                    if (Regex.IsMatch(blobItem.Name, pattern))
+                    {
+                        restaurantFiles.Add(blobItem.Name);
+                    }
                 }
             }
 
@@ -50,90 +55,106 @@ namespace azure_import_csv
             foreach (var file in restaurantFiles)
             {
                 bool existError = false;
-                BlobClient blobClient = blobconnection.uploadContainer.GetBlobClient(file);
-
-                var downloadInfo = await blobClient.DownloadAsync();
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
-                using (var reader = new StreamReader(downloadInfo.Value.Content, Encoding.GetEncoding("Shift-JIS")))
+                if (blobconnection.uploadContainer != null)
                 {
-                    // エラーの行数を格納するためのリスト
-                    List<int> errorLines = new List<int>();
-                    int csvLineNumber = 0;
+                    BlobClient blobClient = blobconnection.uploadContainer.GetBlobClient(file);
 
-                    while (!reader.EndOfStream)
+                    var downloadInfo = await blobClient.DownloadAsync();
+                    Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+
+                    using (var reader = new StreamReader(downloadInfo.Value.Content, Encoding.GetEncoding("Shift-JIS")))
                     {
-                        Restaurant restaurant = new Restaurant();
-                        csvLineNumber++;
-                        string? line = reader.ReadLine();
-                        string[] values = line.Split(',');
-                        List<string> lists = new List<string>(values);
+                        // エラーの行数を格納するためのリスト
+                        List<int> errorLines = new List<int>();
+                        int csvLineNumber = 0;
 
-                        var check = new CsvCheck();
-                        (restaurant, existError) = check.check(lists);
-
-                        if (existError == false)
+                        while (!reader.EndOfStream)
                         {
-                            restaurantList_1.Add(restaurant);
+                            Restaurant restaurant = new Restaurant();
+                            csvLineNumber++;
+                            string line = "";
+                            line = reader.ReadLine() ?? "";
+                            string[] values = line.Split(',');
+                            List<string> lists = new List<string>(values);
+
+                            var check = new CsvCheck();
+                            (restaurant, existError) = check.check(lists);
+
+                            if (existError == false)
+                            {
+                                restaurantList_1.Add(restaurant);
+                            }
+                            else
+                            {
+                                // エラー行番号を記録
+                                errorLines.Add(csvLineNumber);
+                            }
                         }
-                        else
+
+                        // NGの場合
+                        if (errorLines.Count > 0)
                         {
-                            // エラー行番号を記録
-                            errorLines.Add(csvLineNumber);
+                            if (blobconnection.uploadContainer != null && blobconnection.errorContainer != null)
+                            {
+                                // エラーが発生した場合はエラーコンテナへ移動し、処理終了
+                                BlobClient sourceBlob = blobconnection.uploadContainer.GetBlobClient(file);
+                                BlobClient errorBlob = blobconnection.errorContainer.GetBlobClient(file);
+
+                                if (await sourceBlob.ExistsAsync())
+                                {
+                                    await errorBlob.StartCopyFromUriAsync(sourceBlob.Uri);
+                                }
+
+                                await sourceBlob.DeleteIfExistsAsync();
+
+                                string errorFileName = $"{Path.GetFileNameWithoutExtension(file)}.txt";
+                                string logErrorFileName = $"errorlog_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
+
+                                // 1行ずつログ出力
+                                foreach (var lineNo in errorLines)
+                                {
+                                    // ログ出力
+                                    string errorConfig = "";
+                                    errorConfig = System.Configuration.ConfigurationManager.AppSettings["ErrorLog"] ?? "";
+                                    string logErrorContent = string.Format(errorConfig, errorFileName, lineNo);
+                                    await log.AppendLog(logErrorFileName, logErrorContent);
+                                    Console.WriteLine(logErrorContent);
+                                }
+                            }
+
+                            string logErrorEndContent = "";
+                            logErrorEndContent = System.Configuration.ConfigurationManager.AppSettings["EndLog"] ?? "";
+                            Console.WriteLine(logErrorEndContent);
+                            continue; // 次のファイルの処理に移る   
+                        }
+
+                        // 正常処理
+                        DbRegist dbRegist = new DbRegist();
+                        await dbRegist.regist(restaurantList_1);
+
+                        if (blobconnection.uploadContainer != null && blobconnection.backupContainer != null)
+                        {
+                            BlobClient uploadBlob = blobconnection.uploadContainer.GetBlobClient(file);
+                            BlobClient backupBlob = blobconnection.backupContainer.GetBlobClient(file);
+
+
+                            if (await uploadBlob.ExistsAsync())
+                            {
+                                await backupBlob.StartCopyFromUriAsync(uploadBlob.Uri);
+                            }
+
+                            await uploadBlob.DeleteIfExistsAsync();
+                            // restaurantFilesリストの中身を削除
+                            restaurantList_1.Clear();
                         }
                     }
-
-                    // NGの場合
-                    if (errorLines.Count > 0)
-                    {
-                        // エラーが発生した場合はエラーコンテナへ移動し、処理終了
-                        BlobClient sourceBlob = blobconnection.uploadContainer.GetBlobClient(file);
-                        BlobClient errorBlob = blobconnection.errorContainer.GetBlobClient(file);
-
-                        if (await sourceBlob.ExistsAsync())
-                        {
-                            await errorBlob.StartCopyFromUriAsync(sourceBlob.Uri);
-                        }
-
-                        await sourceBlob.DeleteIfExistsAsync();
-
-                        string errorFileName = $"{Path.GetFileNameWithoutExtension(file)}.txt";
-                        string logErrorFileName = $"errorlog_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
-
-                        // 1行ずつログ出力
-                        foreach (var lineNo in errorLines)
-                        {
-                            // ログ出力
-                            string errorConfig = System.Configuration.ConfigurationManager.AppSettings["ErrorLog"];
-                            string logErrorContent = string.Format(errorConfig, errorFileName, lineNo);
-                            await log.AppendLog(logErrorFileName, logErrorContent);
-                            Console.WriteLine(logErrorContent);
-                        }
-                        string logErrorEndContent = System.Configuration.ConfigurationManager.AppSettings["EndLog"];
-                        Console.WriteLine(logErrorEndContent);
-                        continue; // 次のファイルの処理に移る   
-                    }
-
-                    // 正常処理
-                    DbRegist dbRegist = new DbRegist();
-                    await dbRegist.regist(restaurantList_1);
-
-                    BlobClient uploadBlob = blobconnection.uploadContainer.GetBlobClient(file);
-                    BlobClient backupBlob = blobconnection.backupContainer.GetBlobClient(file);
-
-                    if (await uploadBlob.ExistsAsync())
-                    {
-                        await backupBlob.StartCopyFromUriAsync(uploadBlob.Uri);
-                    }
-
-                    await uploadBlob.DeleteIfExistsAsync();
-                    // restaurantFilesリストの中身を削除
-                    restaurantList_1.Clear();
                 }
             }
-                // 以下の内容で処理ログを記載する
-                string logEndFileName = $"endlog_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
-            string logEndContent = ConfigurationManager.AppSettings["EndLog"];
+            // 以下の内容で処理ログを記載する
+            string logEndFileName = $"endlog_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
+            string logEndContent = "";
+            logEndContent = ConfigurationManager.AppSettings["EndLog"] ?? "";
             await log.AppendLog(logEndFileName, logEndContent);
             Console.WriteLine(logEndContent);
         }

@@ -10,10 +10,10 @@ namespace azure_import_csv
 {
     public class BlobConnection
     {
-        public BlobContainerClient uploadContainer { get; private set; }
-        public BlobContainerClient logContainer { get; private set; }
-        public BlobContainerClient errorContainer { get; private set; }
-        public BlobContainerClient backupContainer { get; private set; }
+        public BlobContainerClient? uploadContainer { get; private set; }
+        public BlobContainerClient? logContainer { get; private set; }
+        public BlobContainerClient? errorContainer { get; private set; }
+        public BlobContainerClient? backupContainer { get; private set; }
 
         /// <summary>
         /// 設定ファイルの読み込みとAzureの接続を行います。
@@ -26,10 +26,17 @@ namespace azure_import_csv
             try
             {
                 var appconfig = new AppConfig();
-                string uploadContainerName = System.Configuration.ConfigurationManager.AppSettings["UploadContainer"];
-                string logContainerName = System.Configuration.ConfigurationManager.AppSettings["LogContainer"];
-                string errorContainerName = System.Configuration.ConfigurationManager.AppSettings["ErrorContainer"];
-                string backupContainerName = System.Configuration.ConfigurationManager.AppSettings["BackupContainerZZZ"];
+                string uploadContainerName;
+                uploadContainerName = System.Configuration.ConfigurationManager.AppSettings["UploadContainer"] ?? "";
+
+                string logContainerName;
+                logContainerName = System.Configuration.ConfigurationManager.AppSettings["LogContainer"] ?? "";
+
+                string errorContainerName;
+                errorContainerName = System.Configuration.ConfigurationManager.AppSettings["ErrorContainer"] ?? "";
+
+                string backupContainerName;
+                backupContainerName = System.Configuration.ConfigurationManager.AppSettings["BackupContainerZZZ"] ?? "";
 
                 BlobServiceClient blobServiceClient = new BlobServiceClient(appconfig.BlobConnString);
                 uploadContainer = blobServiceClient.GetBlobContainerClient(uploadContainerName);
@@ -51,7 +58,7 @@ namespace azure_import_csv
                 // 以下の内容で処理ログを記載する
                 string logEndFileName = $"endlog_{DateTime.UtcNow:yyyyMMdd_HHmmss}.txt";
                 string logEndContent = "処理異常終了";
-                log.AppendLog(logEndFileName, logEndContent);
+                log.AppendLog(logEndFileName, logEndContent).GetAwaiter();
 
 
 
@@ -107,10 +114,17 @@ namespace azure_import_csv
             string connString = "";
             connString = System.Configuration.ConfigurationManager.AppSettings["ConnectionAzure"] ?? "";
 
-            string uploadContainerName = System.Configuration.ConfigurationManager.AppSettings["UploadContainer"];
-            string logContainerName = System.Configuration.ConfigurationManager.AppSettings["LogContainer"];
-            string errorContainerName = System.Configuration.ConfigurationManager.AppSettings["ErrorContainer"];
-            string backupContainerName = System.Configuration.ConfigurationManager.AppSettings["BackupContainer"];
+            string uploadContainerName = "";
+            uploadContainerName = System.Configuration.ConfigurationManager.AppSettings["UploadContainer"] ?? "";
+            
+            string logContainerName = "";
+            logContainerName = System.Configuration.ConfigurationManager.AppSettings["LogContainer"] ?? "";
+
+            string errorContainerName = "";
+            errorContainerName = System.Configuration.ConfigurationManager.AppSettings["ErrorContainer"] ?? "";
+
+            string backupContainerName = "";
+            backupContainerName = System.Configuration.ConfigurationManager.AppSettings["BackupContainer"] ?? "";
 
             BlobServiceClient blobServiceClient = new BlobServiceClient(connString);
             uploadContainer = blobServiceClient.GetBlobContainerClient(uploadContainerName);

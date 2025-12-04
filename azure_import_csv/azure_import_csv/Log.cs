@@ -22,36 +22,37 @@ namespace azure_import_csv
             BlobConnection blobconnection = new BlobConnection();
             blobconnection.Connection();
 
-
-            BlobContainerClient logStartContainer = blobconnection.logContainer;
-            BlobClient logStartBlob = logStartContainer.GetBlobClient(fileName);
-
-
-            // Shift-JISでエンコードする部分
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            var encodingStart = System.Text.Encoding.GetEncoding("Shift_JIS");
-
-            // 既存ログを取得（あれば）
-            string existingContent = "";
-            if (await logStartBlob.ExistsAsync())
+            if (blobconnection.logContainer != null && blobconnection.logContainer != null)
             {
-                var downloadResponse = await logStartBlob.DownloadContentAsync();
-                existingContent = encodingStart.GetString(downloadResponse.Value.Content.ToArray());
+                BlobContainerClient logStartContainer = blobconnection.logContainer;
+                BlobClient logStartBlob = logStartContainer.GetBlobClient(fileName);
+
+
+                // Shift-JISでエンコードする部分
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                var encodingStart = System.Text.Encoding.GetEncoding("Shift_JIS");
+
+                // 既存ログを取得（あれば）
+                string existingContent = "";
+                if (await logStartBlob.ExistsAsync())
+                {
+                    var downloadResponse = await logStartBlob.DownloadContentAsync();
+                    existingContent = encodingStart.GetString(downloadResponse.Value.Content.ToArray());
+                }
+
+                // 新しいメッセージを追記
+
+                string newContent = string.IsNullOrEmpty(existingContent)
+                    ? message
+                    : existingContent + Environment.NewLine + message;
+
+                byte[] logStartBytes = encodingStart.GetBytes(newContent);
+
+                using (var stream = new MemoryStream(logStartBytes))
+                {
+                    await logStartBlob.UploadAsync(stream, overwrite: true);
+                }
             }
-
-            // 新しいメッセージを追記
-
-            string newContent = string.IsNullOrEmpty(existingContent)
-                ? message
-                : existingContent + Environment.NewLine + message;
-
-            byte[] logStartBytes = encodingStart.GetBytes(newContent);
-
-            using (var stream = new MemoryStream(logStartBytes))
-            {
-                await logStartBlob.UploadAsync(stream, overwrite: true);
-            }
-
         }
     }
 }
