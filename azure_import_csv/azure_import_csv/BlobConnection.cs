@@ -102,7 +102,11 @@ namespace azure_import_csv
         public void Connection() 
         {
 
-            string connString = System.Configuration.ConfigurationManager.AppSettings["ConnectionAzure"];
+            // 鶴田のやり方
+            //  NULLは明示的に対処するべき、と考えているから。なので、まずは非許容型で対処、できないときは都度検討
+            string connString = "";
+            connString = System.Configuration.ConfigurationManager.AppSettings["ConnectionAzure"] ?? "";
+
             string uploadContainerName = System.Configuration.ConfigurationManager.AppSettings["UploadContainer"];
             string logContainerName = System.Configuration.ConfigurationManager.AppSettings["LogContainer"];
             string errorContainerName = System.Configuration.ConfigurationManager.AppSettings["ErrorContainer"];
