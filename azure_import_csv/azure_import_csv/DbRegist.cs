@@ -30,16 +30,16 @@ namespace azure_import_csv
             // 実行するSQL
             var sql = "INSERT INTO restaurant VALUES(@restaurant_id,@restaurant_name, @genre_id, @station_id, @post_code, @address, @tel, @business_hours, @monday, @tuesday, @wednesday, @thursday, @friday, @saturday, @sunday)";
 
-            // Azure Storageへ接続
-            BlobConnection blobconnection = new BlobConnection();
-            blobconnection.Connection();
+            // Azure Storageへ接続                                     // 0
+            BlobConnection blobconnection = new BlobConnection();       // 1
+            blobconnection.Connection(); //
 
 
             // ファイル名を取得（uploadコンテナから最初の1件）
             string fileName = "";
-            if (blobconnection.uploadContainer != null)
+            if (blobconnection.UploadContainer != null)
             {
-                await foreach (BlobItem blobItem in blobconnection.uploadContainer.GetBlobsAsync())
+                await foreach (BlobItem blobItem in blobconnection.UploadContainer.GetBlobsAsync())
                 {
                     fileName = blobItem.Name;
                     break; // 1件だけ処理する場合
@@ -103,9 +103,9 @@ namespace azure_import_csv
                         //await sourceBlob.DeleteIfExistsAsync();
 
                         // エラー時にファイルを error コンテナへ移動
-                        if (blobconnection.uploadContainer != null && blobconnection.errorContainer != null)
+                        if (blobconnection.UploadContainer != null && blobconnection.errorContainer != null)
                         {
-                            BlobClient sourceBlob = blobconnection.uploadContainer.GetBlobClient(fileName);
+                            BlobClient sourceBlob = blobconnection.UploadContainer.GetBlobClient(fileName);
 
                             BlobClient errorBlob = blobconnection.errorContainer.GetBlobClient(fileName);
 

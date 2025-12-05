@@ -38,9 +38,9 @@ namespace azure_import_csv
             List<string> restaurantFiles = new List<string>();
 
             var pattern = @"^RESTAURANT_\d{14}\.csv$";
-            if (blobconnection.uploadContainer != null)
+            if (blobconnection.UploadContainer != null)
             {
-                await foreach (var blobItem in blobconnection.uploadContainer.GetBlobsAsync())
+                await foreach (var blobItem in blobconnection.UploadContainer.GetBlobsAsync())
                 {
                     if (Regex.IsMatch(blobItem.Name, pattern))
                     {
@@ -55,9 +55,9 @@ namespace azure_import_csv
             foreach (var file in restaurantFiles)
             {
                 bool existError = false;
-                if (blobconnection.uploadContainer != null)
+                if (blobconnection.UploadContainer != null)
                 {
-                    BlobClient blobClient = blobconnection.uploadContainer.GetBlobClient(file);
+                    BlobClient blobClient = blobconnection.UploadContainer.GetBlobClient(file);
 
                     var downloadInfo = await blobClient.DownloadAsync();
                     Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -95,10 +95,10 @@ namespace azure_import_csv
                         // NGの場合
                         if (errorLines.Count > 0)
                         {
-                            if (blobconnection.uploadContainer != null && blobconnection.errorContainer != null)
+                            if (blobconnection.UploadContainer != null && blobconnection.errorContainer != null)
                             {
                                 // エラーが発生した場合はエラーコンテナへ移動し、処理終了
-                                BlobClient sourceBlob = blobconnection.uploadContainer.GetBlobClient(file);
+                                BlobClient sourceBlob = blobconnection.UploadContainer.GetBlobClient(file);
                                 BlobClient errorBlob = blobconnection.errorContainer.GetBlobClient(file);
 
                                 if (await sourceBlob.ExistsAsync())
@@ -133,10 +133,10 @@ namespace azure_import_csv
                         DbRegist dbRegist = new DbRegist();
                         await dbRegist.regist(restaurantList_1);
 
-                        if (blobconnection.uploadContainer != null && blobconnection.backupContainer != null)
+                        if (blobconnection.UploadContainer != null && blobconnection.BackupContainer != null)
                         {
-                            BlobClient uploadBlob = blobconnection.uploadContainer.GetBlobClient(file);
-                            BlobClient backupBlob = blobconnection.backupContainer.GetBlobClient(file);
+                            BlobClient uploadBlob = blobconnection.UploadContainer.GetBlobClient(file);
+                            BlobClient backupBlob = blobconnection.BackupContainer.GetBlobClient(file);
 
 
                             if (await uploadBlob.ExistsAsync())
