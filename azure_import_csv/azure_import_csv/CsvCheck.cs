@@ -75,7 +75,7 @@ namespace azure_import_csv
                             break;
                         // 郵便番号
                         case 4:
-                            if (IsNullOrEmptyCheck(list) && PostCodeCheck(list))
+                            if (azure_import_csv.Models.HasStringValue.IsNullOrEmptyCheck(list) && PostCodeCheck(list))
                             {
                                 restaurant.PostCode = list;
                             }
@@ -199,155 +199,148 @@ namespace azure_import_csv
             }
             return (restaurant,existError);
         }
-            /// <summary>
-            /// データが空白でないことをチェックします。
-            /// </summary>
-            /// <param name="val">空白チェックを行いたいデータを格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 空白チェックメソッド
-            public static bool IsNullOrEmptyCheck(string val)
-            {
-                if (!string.IsNullOrEmpty(val))
-                {
-                    return true;
-                }
-                return false;
-            }
 
-            /// <summary>
-            /// 飲食店IDが文字列、10桁以下であることをチェックします。
-            /// </summary>
-            /// <param name="restaurant_id">飲食店IDを格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 飲食店IDチェックメソッド
-            public static bool RestaurantIdCheck(string restaurant_id)
-            {
-                if (restaurant_id is string && restaurant_id.Length <= 10)
-                {
-                    return true;
-                }
-                return false;
-            }
+        /// <summary>
+        /// データが空白でないことをチェックします。
+        /// </summary>
+        /// <param name="val">空白チェックを行いたいデータを格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 空白チェックメソッド
+        public static bool IsNullOrEmptyCheck(string val)
+        {
+            return (!string.IsNullOrEmpty(val));
+        }
 
-            /// <summary>
-            /// 飲食店名が文字列、100桁以下であることをチェックします。
-            /// </summary>
-            /// <param name="restaurant_name">飲食店名を格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 飲食店名チェックメソッド
-            public static bool RestaurantNameCheck(string restaurant_name)
-            {
-                if (restaurant_name is string && restaurant_name.Length <= 100)
-                {
-                    return true;
-                }
-                return false;
-            }
+        /// <summary>
+        /// 飲食店IDが文字列、10桁以下であることをチェックします。
+        /// </summary>
+        /// <param name="restaurant_id">飲食店IDを格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 飲食店IDチェックメソッド
+        public static bool RestaurantIdCheck(string restaurant_id)
+        {
+            return (restaurant_id is string && restaurant_id.Length <= 10);
+        }
 
-            /// <summary>
-            /// ジャンルIDが文字列、10桁以下であることをチェックします。
-            /// </summary>
-            /// <param name="genre_id">ジャンルIDを格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // ジャンルIDチェックメソッド
-            public static bool GenreIdCheck(string genre_id)
+        /// <summary>
+        /// 飲食店名が文字列、100桁以下であることをチェックします。
+        /// </summary>
+        /// <param name="restaurant_name">飲食店名を格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 飲食店名チェックメソッド
+        public static bool RestaurantNameCheck(string restaurant_name)
+        {
+            if (restaurant_name is string && restaurant_name.Length <= 100)
             {
-                if (genre_id is string && genre_id.Length <= 10)
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            /// <summary>
-            /// 駅IDが文字列、10桁以下であることをチェックします。
-            /// </summary>
-            /// <param name="station_id">駅IDを格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 駅IDチェックメソッド
-            public static bool StationIdCheck(string station_id)
+        /// <summary>
+        /// ジャンルIDが文字列、10桁以下であることをチェックします。
+        /// </summary>
+        /// <param name="genre_id">ジャンルIDを格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // ジャンルIDチェックメソッド
+        public static bool GenreIdCheck(string genre_id)
+        {
+            if (genre_id is string && genre_id.Length <= 10)
             {
-                if (station_id is string && station_id.Length <= 10)
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            /// <summary>
-            /// 郵便番号が文字列、8桁以下、xxx-xxxxの形式であることをチェックします。
-            /// </summary>
-            /// <param name="post_code">郵便番号を格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 郵便番号チェックメソッド
-            public static bool PostCodeCheck(string post_code)
+        /// <summary>
+        /// 駅IDが文字列、10桁以下であることをチェックします。
+        /// </summary>
+        /// <param name="station_id">駅IDを格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 駅IDチェックメソッド
+        public static bool StationIdCheck(string station_id)
+        {
+            if (station_id is string && station_id.Length <= 10)
             {
-                if (post_code is string && post_code.Length <= 8 && Regex.IsMatch(post_code, @"^\d{3}-\d{4}$"))
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            /// <summary>
-            /// 住所が文字列、100桁以下であることをチェックします。
-            /// </summary>
-            /// <param name="address">住所を格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 住所チェックメソッド
-            public static bool AddressCheck(string address)
+        /// <summary>
+        /// 郵便番号が文字列、8桁以下、xxx-xxxxの形式であることをチェックします。
+        /// </summary>
+        /// <param name="post_code">郵便番号を格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 郵便番号チェックメソッド
+        public static bool PostCodeCheck(string post_code)
+        {
+            if (post_code is string && post_code.Length <= 8 && Regex.IsMatch(post_code, @"^\d{3}-\d{4}$"))
             {
-                if (address is string && address.Length <= 100)
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            /// <summary>
-            /// 電話番号が文字列、20桁以下であることをチェックします。
-            /// </summary>
-            /// <param name="tel">電話番号を格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 電話番号チェックメソッド
-            public static bool TelCheck(string tel)
+        /// <summary>
+        /// 住所が文字列、100桁以下であることをチェックします。
+        /// </summary>
+        /// <param name="address">住所を格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 住所チェックメソッド
+        public static bool AddressCheck(string address)
+        {
+            if (address is string && address.Length <= 100)
             {
-                if (tel is string && tel.Length <= 20)
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            /// <summary>
-            /// 営業時間が文字列、20桁以下であることをチェックします。
-            /// </summary>
-            /// <param name="business_hours">営業時間を格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 営業時間チェックメソッド
-            public static bool BusinessHoursCheck(string business_hours)
+        /// <summary>
+        /// 電話番号が文字列、20桁以下であることをチェックします。
+        /// </summary>
+        /// <param name="tel">電話番号を格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 電話番号チェックメソッド
+        public static bool TelCheck(string tel)
+        {
+            if (tel is string && tel.Length <= 20)
             {
-                if (business_hours is string && business_hours.Length <= 20)
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
+        }
 
-            /// <summary>
-            /// 営業日であることをチェックします。
-            /// </summary>
-            /// <param name="day_of_week">曜日を格納した文字列</param>
-            /// <returns>チェックが成功したかどうかを示す真偽値</returns>
-            // 曜日チェックメソッド
-            public static bool DayOfWeekCheck(string day_of_week)
+        /// <summary>
+        /// 営業時間が文字列、20桁以下であることをチェックします。
+        /// </summary>
+        /// <param name="business_hours">営業時間を格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 営業時間チェックメソッド
+        public static bool BusinessHoursCheck(string business_hours)
+        {
+            if (business_hours is string && business_hours.Length <= 20)
             {
-                bool result;
-                if (bool.TryParse(day_of_week, out result))
-                {
-                    return true;
-                }
-                return false;
+                return true;
             }
+            return false;
+        }
+
+        /// <summary>
+        /// 営業日であることをチェックします。
+        /// </summary>
+        /// <param name="day_of_week">曜日を格納した文字列</param>
+        /// <returns>チェックが成功したかどうかを示す真偽値</returns>
+        // 曜日チェックメソッド
+        public static bool DayOfWeekCheck(string day_of_week)
+        {
+            bool result;
+            if (bool.TryParse(day_of_week, out result))
+            {
+                return true;
+            }
+            return false;
         }
     }
+}

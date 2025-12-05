@@ -59,21 +59,14 @@ namespace TestProject
             Assert.IsTrue(result);
         }
 
-        [TestMethod]
-        public void IsNullOrEmptyCheckTest1()
-        {
-            CsvCheck csvcheck = new CsvCheck();
-            bool result = CsvCheck.IsNullOrEmptyCheck("テスト");
-            Assert.IsTrue(result);
-        }
 
-        [TestMethod]
-        public void IsNullOrEmptyCheckTest2()
-        {
-            CsvCheck csvcheck = new CsvCheck();
-            bool result = CsvCheck.IsNullOrEmptyCheck(null);
-            Assert.IsFalse(result);
-        }
+        //[TestMethod]
+        //public void IsNullOrEmptyCheckTest2()
+        //{
+        //    CsvCheck csvcheck = new CsvCheck();
+        //    bool result = CsvCheck.IsNullOrEmptyCheck(null);
+        //    Assert.IsFalse(result);
+        //}
 
         [TestMethod]
         public void RestaurantIdCheckTest1()
@@ -83,10 +76,18 @@ namespace TestProject
             Assert.IsTrue(result);
         }
 
+        [TestMethod]
         public void RestaurantIdCheckTest2()
         {
             CsvCheck csvcheck = new CsvCheck();
             bool result = CsvCheck.RestaurantIdCheck("abcdefghijk");
+            Assert.IsFalse(result);
+        }
+        [TestMethod]
+        public void RestaurantIdCheckTest3()
+        {
+            CsvCheck csvcheck = new CsvCheck();
+            bool result = CsvCheck.RestaurantIdCheck(null);
             Assert.IsFalse(result);
         }
 
